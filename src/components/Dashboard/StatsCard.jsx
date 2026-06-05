@@ -1,24 +1,38 @@
-export default function StatsCard({ title, value, icon, color, subtitle, trend }) {
+import { motion } from 'framer-motion';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+
+export default function StatsCard({ title, value, icon, color, subtitle, trend, delay = 0 }) {
+  const trendVal = trend;
+  const isPositive = trendVal >= 0;
+
   return (
-    <div className="card-hover bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.4, ease: 'easeOut' }}
+      className="glass-card dark:glass-dark rounded-2xl p-4 sm:p-5 card-hover"
+    >
       <div className="flex items-start justify-between mb-3">
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-          style={{ backgroundColor: `${color}15` }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm"
+          style={{ backgroundColor: `${color}18` }}
         >
-          {icon}
+          {typeof icon === 'string' ? <span>{icon}</span> : icon}
         </div>
-        {trend !== undefined && (
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-            trend >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+        {trend !== null && trend !== undefined && (
+          <div className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
+            isPositive
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
           }`}>
-            {trend >= 0 ? '+' : ''}{trend}%
-          </span>
+            {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {Math.abs(trendVal)}%
+          </div>
         )}
       </div>
-      <p className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{value}</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
-      {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{subtitle}</p>}
-    </div>
+      <p className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white mb-0.5 font-mono tracking-tight">{value}</p>
+      <p className="text-xs text-slate-400 dark:text-slate-500">{title}</p>
+      {subtitle && <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{subtitle}</p>}
+    </motion.div>
   );
 }

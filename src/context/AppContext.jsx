@@ -1,13 +1,70 @@
-import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useMemo, useEffect, useCallback } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { getMonthYear } from '../utils/helpers';
 import { generateAIInsights } from '../utils/aiInsights';
 import { calculateHealthScore } from '../utils/healthScore';
 import { predictExpenses } from '../utils/predictions';
-import { checkAchievements } from '../utils/achievements';
+
 import { getUpcomingRenewals } from '../utils/subscriptions';
 import { analyzeMoodSpending } from '../utils/moodTracker';
 import { createNotification, checkBudgetAlert, checkSavingsGoalAlert, checkUnusualSpendingAlert } from '../utils/notifications';
+
+const THEMES = ['dark', 'light', 'purple', 'emerald', 'blue'];
+
+const FINANCIAL_QUOTES = [
+  { text: "The habit of saving is itself an education.", author: "John Doe" },
+  { text: "Do not save what is left after spending, but spend what is left after saving.", author: "Warren Buffett" },
+  { text: "Financial freedom is available to those who learn about it and work for it.", author: "Robert Kiyosaki" },
+  { text: "It's not about how much money you make, but how much you keep.", author: "Robert Kiyosaki" },
+  { text: "A budget is telling your money where to go instead of wondering where it went.", author: "Dave Ramsey" },
+  { text: "The stock market is filled with individuals who know the price of everything, but the value of nothing.", author: "Philip Fisher" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+  { text: "The art is not in making money, but in keeping it.", author: "Proverb" },
+  { text: "Money is a terrible master but an excellent servant.", author: "P.T. Barnum" },
+  { text: "Rich people have small TVs and big libraries, poor people have small libraries and big TVs.", author: "Robert Kiyosaki" },
+  { text: "Never depend on a single income. Make investments to create a second source.", author: "Warren Buffett" },
+  { text: "The best time to start saving was yesterday. The next best time is now.", author: "Anonymous" },
+  { text: "Money grows on the tree of patience.", author: "Japanese Proverb" },
+  { text: "Every penny saved is a penny earned.", author: "Benjamin Franklin" },
+  { text: "Don't tell me what you value, show me your budget and I'll tell you what you value.", author: "Joe Biden" },
+];
+
+function calculateStreak(transactions) {
+  const dates = [...new Set(transactions.map(t => t.date.split('T')[0]))].sort();
+  if (dates.length === 0) return 0;
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  if (dates[dates.length - 1] !== today && dates[dates.length - 1] !== yesterday) return 0;
+  let streak = 1;
+  for (let i = dates.length - 1; i > 0; i--) {
+    const prev = new Date(dates[i - 1]);
+    const curr = new Date(dates[i]);
+    const diff = (curr - prev) / 86400000;
+    if (diff === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function calculateLevel(transactions, earnedAchievements) {
+  const xp = transactions.length * 10 + earnedAchievements.length * 100;
+  if (xp >= 5000) return { level: 'Platinum', icon: '💎', min: 5000, color: '#6366f1' };
+  if (xp >= 2000) return { level: 'Gold', icon: '🥇', min: 2000, color: '#f59e0b' };
+  if (xp >= 500) return { level: 'Silver', icon: '🥈', min: 500, color: '#94a3b8' };
+  return { level: 'Bronze', icon: '🥉', min: 0, color: '#cd7f32' };
+}
+
+function getDailyQuote() {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return FINANCIAL_QUOTES[dayOfYear % FINANCIAL_QUOTES.length];
+}
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
 
 const AppContext = createContext(null);
 
@@ -15,7 +72,7 @@ export function AppProvider({ children }) {
   const [transactions, setTransactions] = useLocalStorage('bt_transactions', []);
   const [budget, setBudget] = useLocalStorage('bt_budget', {});
   const [savingsGoals, setSavingsGoals] = useLocalStorage('bt_savings_goals', []);
-  const [theme, setTheme] = useLocalStorage('bt_theme', 'light');
+  const [theme, setTheme] = useLocalStorage('bt_theme', 'dark');
   const [currency, setCurrency] = useLocalStorage('bt_currency', 'INR');
   const [subscriptions, setSubscriptions] = useLocalStorage('bt_subscriptions', []);
   const [challenges, setChallenges] = useLocalStorage('bt_challenges', []);
@@ -25,6 +82,16 @@ export function AppProvider({ children }) {
 
   const currentMonth = getMonthYear(new Date().toISOString());
   const currentBudget = budget[currentMonth] || 0;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute('data-theme', theme);
+    if (theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      root.classList.add('dark');
+    }
+  }, [theme]);
 
   const totalIncome = useMemo(() =>
     transactions.filter((t) => t.type === 'Income').reduce((sum, t) => sum + Number(t.amount), 0),
@@ -47,6 +114,8 @@ export function AppProvider({ children }) {
       .reduce((sum, t) => sum + Number(t.amount), 0),
     [transactions, currentMonth]
   );
+
+  const monthlySavings = monthlyIncome - monthlyExpenses;
 
   const budgetSpentPercent = useMemo(() =>
     currentBudget > 0 ? Math.min((monthlyExpenses / currentBudget) * 100, 100) : 0,
@@ -71,6 +140,34 @@ export function AppProvider({ children }) {
   const upcomingRenewals = useMemo(() => getUpcomingRenewals(subscriptions), [subscriptions]);
 
   const moodAnalysis = useMemo(() => analyzeMoodSpending(transactions), [transactions]);
+
+  const streak = useMemo(() => calculateStreak(transactions), [transactions]);
+  const userLevel = useMemo(() => calculateLevel(transactions, earnedAchievements), [transactions, earnedAchievements]);
+  const dailyQuote = useMemo(() => getDailyQuote(), []);
+  const greeting = useMemo(() => getGreeting(), []);
+
+  const todaySpending = useMemo(() =>
+    transactions.filter(t => {
+      const today = new Date().toISOString().split('T')[0];
+      return t.type === 'Expense' && t.date.split('T')[0] === today;
+    }).reduce((s, t) => s + Number(t.amount), 0),
+    [transactions]
+  );
+
+  const weekSpending = useMemo(() => {
+    const weekAgo = Date.now() - 7 * 86400000;
+    return transactions.filter(t => t.type === 'Expense' && new Date(t.date).getTime() >= weekAgo)
+      .reduce((s, t) => s + Number(t.amount), 0);
+  }, [transactions]);
+
+  const topCategory = useMemo(() => {
+    const catMap = {};
+    transactions.filter(t => t.type === 'Expense' && getMonthYear(t.date) === currentMonth)
+      .forEach(t => { catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount); });
+    const entries = Object.entries(catMap);
+    if (entries.length === 0) return null;
+    return entries.sort(([, a], [, b]) => b - a)[0];
+  }, [transactions, currentMonth]);
 
   const addTransaction = useCallback((transaction) => {
     setTransactions((prev) => [...prev, { ...transaction, id: Date.now().toString() }]);
@@ -100,8 +197,8 @@ export function AppProvider({ children }) {
     setSavingsGoals((prev) => prev.filter((g) => g.id !== id));
   }, [setSavingsGoals]);
 
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  const setThemeValue = useCallback((t) => {
+    if (THEMES.includes(t)) setTheme(t);
   }, [setTheme]);
 
   const addSubscription = useCallback((sub) => {
@@ -201,23 +298,25 @@ export function AppProvider({ children }) {
 
   const value = useMemo(() => ({
     transactions, budget, currentBudget, currentMonth, totalIncome, totalExpenses,
-    monthlyExpenses, monthlyIncome, budgetSpentPercent, savingsGoals, theme, currency,
-    subscriptions, challenges, earnedAchievements, notifications, studentMode,
-    aiInsights, healthScore, predictions, upcomingRenewals, moodAnalysis,
+    monthlyExpenses, monthlyIncome, monthlySavings, budgetSpentPercent, savingsGoals,
+    theme, currency, subscriptions, challenges, earnedAchievements, notifications,
+    studentMode, aiInsights, healthScore, predictions, upcomingRenewals, moodAnalysis,
+    streak, userLevel, dailyQuote, greeting, todaySpending, weekSpending, topCategory,
     setCurrency, addTransaction, updateTransaction, deleteTransaction,
     setMonthlyBudget, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal,
-    toggleTheme, addSubscription, updateSubscription, deleteSubscription,
+    setTheme: setThemeValue, addSubscription, updateSubscription, deleteSubscription,
     addChallenge, updateChallenge, deleteChallenge,
     setEarnedAchievements, addNotification, markNotificationRead, clearNotifications,
     setStudentMode, setSubscriptions, setChallenges, setNotifications,
   }), [
     transactions, budget, currentBudget, currentMonth, totalIncome, totalExpenses,
-    monthlyExpenses, monthlyIncome, budgetSpentPercent, savingsGoals, theme, currency,
-    subscriptions, challenges, earnedAchievements, notifications, studentMode,
-    aiInsights, healthScore, predictions, upcomingRenewals, moodAnalysis,
+    monthlyExpenses, monthlyIncome, monthlySavings, budgetSpentPercent, savingsGoals,
+    theme, currency, subscriptions, challenges, earnedAchievements, notifications,
+    studentMode, aiInsights, healthScore, predictions, upcomingRenewals, moodAnalysis,
+    streak, userLevel, dailyQuote, greeting, todaySpending, weekSpending, topCategory,
     setCurrency, addTransaction, updateTransaction, deleteTransaction,
     setMonthlyBudget, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal,
-    toggleTheme, addSubscription, updateSubscription, deleteSubscription,
+    setThemeValue, addSubscription, updateSubscription, deleteSubscription,
     addChallenge, updateChallenge, deleteChallenge,
     setEarnedAchievements, addNotification, markNotificationRead, clearNotifications,
     setStudentMode, setSubscriptions, setChallenges, setNotifications,
@@ -231,3 +330,5 @@ export const useApp = () => {
   if (!ctx) throw new Error('useApp must be used within AppProvider');
   return ctx;
 };
+
+export { THEMES };

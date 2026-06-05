@@ -1,5 +1,7 @@
+import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/helpers';
+import { AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
 
 export default function BudgetProgress() {
   const { monthlyExpenses, currentBudget, budgetSpentPercent, currency } = useApp();
@@ -11,49 +13,71 @@ export default function BudgetProgress() {
   const isDanger = budgetSpentPercent >= 100;
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.4 }}
+      className="glass-card dark:glass-dark rounded-2xl p-4 sm:p-5 h-full"
+    >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-slate-800 dark:text-white">Monthly Budget</h3>
-        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-          isDanger ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-          isWarning ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
-          'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white">Monthly Budget</h3>
+        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+          isDanger
+            ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
+            : isWarning
+              ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
+              : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
         }`}>
-          {isDanger ? 'Exceeded!' : isWarning ? 'Limit Near' : 'On Track'}
+          {isDanger ? 'Exceeded' : isWarning ? 'Limit Near' : 'On Track'}
         </span>
       </div>
-      <div className="mb-2">
-        <div className="flex justify-between text-sm mb-1.5">
-          <span className="text-slate-500 dark:text-slate-400">Spent: {formatCurrency(currency, monthlyExpenses)}</span>
-          <span className="text-slate-500 dark:text-slate-400">Budget: {formatCurrency(currency, currentBudget)}</span>
+      <div className="mb-3">
+        <div className="flex justify-between text-xs mb-1.5">
+          <span className="text-slate-400 dark:text-slate-500">Spent</span>
+          <span className="text-slate-400 dark:text-slate-500">Budget</span>
         </div>
-        <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ease-out ${
-              isDanger ? 'bg-red-500 progress-glow' : isWarning ? 'bg-amber-500' : 'bg-primary'
+        <div className="flex justify-between text-sm font-semibold mb-2">
+          <span className="text-slate-800 dark:text-white">{formatCurrency(currency, monthlyExpenses)}</span>
+          <span className="text-slate-500 dark:text-slate-400">{formatCurrency(currency, currentBudget)}</span>
+        </div>
+        <div className="w-full h-2.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${
+              isDanger ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-primary'
             }`}
-            style={{ width: `${Math.min(budgetSpentPercent, 100)}%` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min(budgetSpentPercent, 100)}%` }}
+            transition={{ duration: 1, ease: 'easeOut' }}
           />
         </div>
         <div className="flex justify-between text-xs mt-1.5">
-          <span className={isDanger ? 'text-red-500 font-medium' : isWarning ? 'text-amber-500 font-medium' : 'text-primary font-medium'}>
-            {budgetSpentPercent.toFixed(1)}% spent
+          <span className={`font-medium ${
+            isDanger ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-primary'
+          }`}>
+            {budgetSpentPercent.toFixed(1)}%
           </span>
           <span className="text-slate-400 dark:text-slate-500">
             {remaining >= 0 ? `${formatCurrency(currency, remaining)} left` : `${formatCurrency(currency, Math.abs(remaining))} over`}
           </span>
         </div>
       </div>
-      {isDanger && (
-        <p className="text-xs text-red-500 mt-2 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">
-          ⚠️ You have exceeded your monthly budget by {formatCurrency(currency, Math.abs(remaining))}!
-        </p>
-      )}
-      {isWarning && !isDanger && (
-        <p className="text-xs text-amber-500 mt-2 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
-          ⚠️ You have used {budgetSpentPercent.toFixed(0)}% of your monthly budget
-        </p>
-      )}
-    </div>
+      <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${
+        isDanger
+          ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
+          : isWarning
+            ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'
+            : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+      }`}>
+        {isDanger ? <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" /> : isWarning ? <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" /> : <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+        <span>
+          {isDanger
+            ? `Exceeded by ${formatCurrency(currency, Math.abs(remaining))}`
+            : isWarning
+              ? `${budgetSpentPercent.toFixed(0)}% of budget used`
+              : `${formatCurrency(currency, remaining)} remaining`
+          }
+        </span>
+      </div>
+    </motion.div>
   );
 }

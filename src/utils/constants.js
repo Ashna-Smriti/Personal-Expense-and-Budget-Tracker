@@ -10,6 +10,19 @@ export const EXPENSE_CATEGORIES = [
   { name: 'Other', icon: '📌', color: '#64748b' },
 ];
 
+export const STUDENT_EXPENSE_CATEGORIES = [
+  { name: 'Tuition Fee', icon: '📚', color: '#6366f1' },
+  { name: 'Hostel Fee', icon: '🏠', color: '#f59e0b' },
+  { name: 'Mess Fee', icon: '🍽️', color: '#ef4444' },
+  { name: 'Books', icon: '📖', color: '#8b5cf6' },
+  { name: 'Stationery', icon: '✏️', color: '#06b6d4' },
+  { name: 'Online Courses', icon: '💻', color: '#10b981' },
+  { name: 'Transportation', icon: '🚌', color: '#f97316' },
+  { name: 'Food', icon: '🍔', color: '#ec4899' },
+  { name: 'Entertainment', icon: '🎬', color: '#14b8a6' },
+  { name: 'Other', icon: '📌', color: '#64748b' },
+];
+
 export const INCOME_CATEGORIES = [
   { name: 'Salary', icon: '💼', color: '#10b981' },
   { name: 'Freelancing', icon: '💻', color: '#6366f1' },
@@ -17,6 +30,24 @@ export const INCOME_CATEGORIES = [
   { name: 'Scholarship', icon: '🎓', color: '#8b5cf6' },
   { name: 'Gift', icon: '🎁', color: '#ec4899' },
   { name: 'Other', icon: '📌', color: '#64748b' },
+];
+
+export const STUDENT_INCOME_CATEGORIES = [
+  { name: 'Pocket Money', icon: '💵', color: '#10b981' },
+  { name: 'Scholarship', icon: '🎓', color: '#6366f1' },
+  { name: 'Internship', icon: '💼', color: '#f59e0b' },
+  { name: 'Freelancing', icon: '💻', color: '#8b5cf6' },
+  { name: 'Part-Time Job', icon: '👷', color: '#06b6d4' },
+  { name: 'Other', icon: '📌', color: '#64748b' },
+];
+
+export const STUDENT_SAVINGS_GOALS = [
+  { name: 'New Laptop', icon: '💻', target: 50000 },
+  { name: 'GATE Preparation', icon: '📚', target: 15000 },
+  { name: 'UPSC Books', icon: '📖', target: 10000 },
+  { name: 'Certification Program', icon: '🎓', target: 25000 },
+  { name: 'College Trip', icon: '✈️', target: 20000 },
+  { name: 'Online Course', icon: '💡', target: 8000 },
 ];
 
 export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];

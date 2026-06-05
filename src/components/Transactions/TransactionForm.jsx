@@ -4,8 +4,27 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../utils/constants';
 import { getCurrencySymbol } from '../../utils/helpers';
 import MoodSelector from '../Common/MoodSelector';
 
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function parseVoiceText(text, categories) {
+  const result = { description: text, amount: '', category: '' };
+  const amountMatch = text.match(/[\d,.]+/);
+  if (amountMatch) result.amount = amountMatch[0].replace(/,/g, '');
+
+  for (const cat of categories) {
+    if (text.toLowerCase().includes(cat.name.toLowerCase())) {
+      result.category = cat.name;
+      break;
+    }
+  }
+  const cleaned = text.replace(/spent\s+|paid\s+|used\s+|cost\s+|\d[\d,.]*/g, '').replace(/\s+/g, ' ').trim();
+  if (cleaned) result.description = cleaned;
+  return result;
+}
+
 export default function TransactionForm({ onSubmit, onCancel, initialData }) {
   const { currency } = useApp();
+  const [listening, setListening] = useState(false);
   const [form, setForm] = useState({
     type: 'Expense',
     amount: '',
@@ -103,14 +122,53 @@ export default function TransactionForm({ onSubmit, onCancel, initialData }) {
 
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
-        <input
-          type="text"
-          required
-          value={form.description}
-          onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          placeholder="Enter description..."
-          className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            required
+            value={form.description}
+            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+            placeholder="Enter description or use voice input..."
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors pr-12"
+          />
+          {SpeechRecognition && (
+            <button
+              type="button"
+              onClick={() => {
+                if (listening) return;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                setListening(true);
+                recognition.onresult = (event) => {
+                  const transcript = event.results[0][0].transcript;
+                  const catList = form.type === 'Expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+                  const parsed = parseVoiceText(transcript, catList);
+                  setForm((prev) => ({
+                    ...prev,
+                    description: parsed.description || prev.description,
+                    amount: parsed.amount || prev.amount,
+                    category: parsed.category || prev.category,
+                  }));
+                  setListening(false);
+                };
+                recognition.onerror = () => setListening(false);
+                recognition.onend = () => setListening(false);
+                recognition.start();
+              }}
+              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+                listening
+                  ? 'bg-red-100 dark:bg-red-900/30 text-red-500 animate-pulse'
+                  : 'text-slate-400 hover:text-primary hover:bg-primary/10'
+              }`}
+              title="Voice input"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       <div>

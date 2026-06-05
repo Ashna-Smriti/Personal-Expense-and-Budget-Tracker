@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
 import { filterTransactions, formatCurrency, formatDate } from '../../utils/helpers';
 import { ALL_CATEGORIES } from '../../utils/constants';
@@ -8,15 +9,34 @@ import Modal from '../Common/Modal';
 import ConfirmDialog from '../Common/ConfirmDialog';
 import EmptyState from '../Common/EmptyState';
 import FloatingButton from '../Common/FloatingButton';
+import { X } from 'lucide-react';
 
 export default function TransactionList() {
   const { transactions, addTransaction, updateTransaction, deleteTransaction, currency } = useApp();
   const [filters, setFilters] = useState({ month: '', category: '', startDate: '', endDate: '', search: '' });
+  const [amountMin, setAmountMin] = useState('');
+  const [amountMax, setAmountMax] = useState('');
+  const [sortBy, setSortBy] = useState('date-desc');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  const filtered = useMemo(() => filterTransactions(transactions, filters), [transactions, filters]);
+  const filtered = useMemo(() => {
+    let f = filterTransactions(transactions, filters);
+    if (amountMin) f = f.filter((t) => Number(t.amount) >= Number(amountMin));
+    if (amountMax) f = f.filter((t) => Number(t.amount) <= Number(amountMax));
+    return f;
+  }, [transactions, filters, amountMin, amountMax]);
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    const [field, dir] = sortBy.split('-');
+    const mul = dir === 'asc' ? 1 : -1;
+    if (field === 'date') arr.sort((a, b) => mul * (new Date(b.date) - new Date(a.date)));
+    else if (field === 'amount') arr.sort((a, b) => mul * (Number(b.amount) - Number(a.amount)));
+    else if (field === 'category') arr.sort((a, b) => mul * (a.category || '').localeCompare(b.category || ''));
+    return arr;
+  }, [filtered, sortBy]);
 
   const handleSubmit = (data) => {
     if (editing) {
@@ -38,12 +58,85 @@ export default function TransactionList() {
     setDeleteId(null);
   };
 
-  const sorted = useMemo(() => [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date)), [filtered]);
+  const clearFilter = (key) => {
+    setFilters((prev) => ({ ...prev, [key]: '' }));
+  };
+
+  const activeChips = [];
+  if (filters.month) activeChips.push({ key: 'month', label: `Month: ${filters.month}` });
+  if (filters.category) activeChips.push({ key: 'category', label: `Category: ${filters.category}` });
+  if (filters.startDate) activeChips.push({ key: 'startDate', label: `From: ${filters.startDate}` });
+  if (filters.endDate) activeChips.push({ key: 'endDate', label: `To: ${filters.endDate}` });
+  if (filters.search) activeChips.push({ key: 'search', label: `"${filters.search}"` });
+  if (amountMin) activeChips.push({ key: 'amountMin', label: `Min: ${amountMin}` });
+  if (amountMax) activeChips.push({ key: 'amountMax', label: `Max: ${amountMax}` });
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="space-y-3 mb-4">
         <Filters filters={filters} setFilters={setFilters} />
+
+        <div className="flex flex-wrap gap-3">
+          <div className="flex-1 min-w-[120px]">
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Min Amount</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={amountMin}
+              onChange={(e) => setAmountMin(e.target.value)}
+              placeholder="Min"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors"
+            />
+          </div>
+          <div className="flex-1 min-w-[120px]">
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Max Amount</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={amountMax}
+              onChange={(e) => setAmountMax(e.target.value)}
+              placeholder="Max"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors"
+            />
+          </div>
+          <div className="flex-1 min-w-[130px]">
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Sort By</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors"
+            >
+              <option value="date-desc">Date ↓</option>
+              <option value="date-asc">Date ↑</option>
+              <option value="amount-desc">Amount ↓</option>
+              <option value="amount-asc">Amount ↑</option>
+              <option value="category-asc">Category A-Z</option>
+              <option value="category-desc">Category Z-A</option>
+            </select>
+          </div>
+        </div>
+
+        {activeChips.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {activeChips.map((chip) => (
+              <span
+                key={chip.key}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary dark:bg-primary/20"
+              >
+                {chip.label}
+                <button onClick={() => {
+                  if (chip.key === 'amountMin') setAmountMin('');
+                  else if (chip.key === 'amountMax') setAmountMax('');
+                  else clearFilter(chip.key);
+                }} className="hover:text-primary-dark transition-colors">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {sorted.length === 0 ? (
@@ -66,11 +159,17 @@ export default function TransactionList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-              {sorted.map((t) => {
+              {sorted.map((t, idx) => {
                 const cat = ALL_CATEGORIES.find((c) => c.name === t.category);
                 const isExpense = t.type === 'Expense';
                 return (
-                  <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <motion.tr
+                    key={t.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.02 }}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+                  >
                     <td className="p-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDate(t.date)}</td>
                     <td className="p-3">
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
@@ -109,7 +208,7 @@ export default function TransactionList() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 );
               })}
             </tbody>

@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
-import { formatCurrency, getCurrencySymbol, getMonthLabel, getCurrentMonth } from '../../utils/helpers';
+import { formatCurrency, getCurrencySymbol, getMonthLabel } from '../../utils/helpers';
+import { calculateSemesterBudget, getSemesterMonths } from '../../utils/studentUtils';
 import SmartBudgetPlanner from './SmartBudgetPlanner';
+import { GraduationCap } from 'lucide-react';
 
 export default function BudgetManager() {
-  const { budget, setMonthlyBudget, currentMonth, monthlyExpenses, budgetSpentPercent, currency } = useApp();
+  const { budget, setMonthlyBudget, currentMonth, monthlyExpenses, budgetSpentPercent, currency, studentMode, transactions } = useApp();
   const [amount, setAmount] = useState('');
   const [editing, setEditing] = useState(false);
 
@@ -21,15 +24,33 @@ export default function BudgetManager() {
     setEditing(false);
   };
 
+  const semester = useMemo(() => getSemesterMonths(), []);
+  const semesterData = useMemo(() =>
+    calculateSemesterBudget(transactions, budget['semester'] || 0, semester, currentMonth),
+    [transactions, budget, semester, currentMonth]
+  );
+
+  const [semesterBudgetAmt, setSemesterBudgetAmt] = useState('');
+  const [showSemesterBudget, setShowSemesterBudget] = useState(false);
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Budget Management</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Set and monitor your monthly budgets</p>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-3">
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-base">💰</span>
+          {studentMode ? 'Student Budget Planner' : 'Budget Management'}
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          {studentMode ? 'Manage your semester and monthly student budget' : 'Set and monitor your monthly budgets'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="glass-card dark:glass-dark rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-800 dark:text-white">{getMonthLabel(currentMonth)} Budget</h3>
             {currentBudget > 0 && (
@@ -112,7 +133,7 @@ export default function BudgetManager() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="glass-card dark:glass-dark rounded-2xl p-6">
           <h3 className="font-semibold text-slate-800 dark:text-white mb-4">Budget History</h3>
           {Object.keys(budget).length === 0 ? (
             <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">No budgets set yet</p>
@@ -121,7 +142,7 @@ export default function BudgetManager() {
               {Object.entries(budget)
                 .sort(([a], [b]) => b.localeCompare(a))
                 .map(([month, amt]) => (
-                  <div key={month} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <div key={month} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
                     <div>
                       <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{getMonthLabel(month)}</p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">Budget set</p>
@@ -134,7 +155,92 @@ export default function BudgetManager() {
         </div>
       </div>
 
+      {studentMode && (
+        <div className="glass-card dark:glass-dark rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-purple-500" />
+              Semester Budget ({semester.label})
+            </h3>
+            {budget['semester'] ? (
+              <button
+                onClick={() => { setShowSemesterBudget(true); setSemesterBudgetAmt(String(budget['semester'])); }}
+                className="text-sm font-medium text-primary hover:text-primary-dark transition-colors"
+              >
+                Edit
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowSemesterBudget(true)}
+                className="text-sm font-medium text-primary hover:text-primary-dark transition-colors"
+              >
+                Set Budget
+              </button>
+            )}
+          </div>
+
+          {budget['semester'] && !showSemesterBudget ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5">
+                  <p className="text-[10px] text-slate-400">Semester Budget</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-white font-mono">{formatCurrency(currency, budget['semester'])}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5">
+                  <p className="text-[10px] text-slate-400">Spent So Far</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-white font-mono">{formatCurrency(currency, semesterData.totalSpent)}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400">Remaining</p>
+                  <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono">{formatCurrency(currency, semesterData.remaining)}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                  <p className="text-[10px] text-amber-600 dark:text-amber-400">Predicted Total</p>
+                  <p className="text-lg font-bold text-amber-600 dark:text-amber-400 font-mono">{formatCurrency(currency, semesterData.predictedTotal)}</p>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500 dark:text-slate-400">Progress</span>
+                  <span className="text-slate-500">{Math.round(semesterData.percentUsed)}%</span>
+                </div>
+                <div className="h-3 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${semesterData.percentUsed > 90 ? 'bg-red-500' : semesterData.percentUsed > 70 ? 'bg-amber-500' : 'bg-primary'}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(semesterData.percentUsed, 100)}%` }}
+                    transition={{ duration: 1 }}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); if (semesterBudgetAmt) { setMonthlyBudget('semester', parseFloat(semesterBudgetAmt)); setShowSemesterBudget(false); } }}>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                {budget['semester'] ? 'Update your semester budget' : 'Set your total semester budget'}
+              </p>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{getCurrencySymbol(currency)}</span>
+                <input
+                  type="number" step="0.01" min="0" required
+                  value={semesterBudgetAmt}
+                  onChange={(e) => setSemesterBudgetAmt(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full pl-7 pr-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/[0.03] text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+                />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button type="button" onClick={() => setShowSemesterBudget(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-xl transition-colors">
+                  {budget['semester'] ? 'Update' : 'Set'} Semester Budget
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
       <SmartBudgetPlanner />
-    </div>
+    </motion.div>
   );
 }
