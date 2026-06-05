@@ -76,7 +76,7 @@ export default function WhatIfSimulator() {
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Test how different spending decisions affect your finances</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="glass-card dark:glass-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-amber-500" /> Scenario
@@ -106,7 +106,7 @@ export default function WhatIfSimulator() {
               <>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Category</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {EXPENSE_CATEGORIES.map((cat) => (
                       <button
                         key={cat.name}

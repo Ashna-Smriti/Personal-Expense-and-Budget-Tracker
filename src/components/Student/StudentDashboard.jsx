@@ -144,7 +144,7 @@ export default function StudentDashboard() {
           ))}
         </motion.div>
 
-        <motion.div variants={itemAnim} className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+        <motion.div variants={itemAnim} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="lg:col-span-2 glass-card dark:glass-dark rounded-2xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-bold">📊</div>
@@ -221,7 +221,7 @@ export default function StudentDashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemAnim} className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+        <motion.div variants={itemAnim} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="lg:col-span-2 glass-card dark:glass-dark rounded-2xl p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -301,7 +301,7 @@ export default function StudentDashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemAnim} className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+        <motion.div variants={itemAnim} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="lg:col-span-2 glass-card dark:glass-dark rounded-2xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <PiggyBank className="w-4 h-4 text-emerald-500" />
@@ -382,7 +382,7 @@ export default function StudentDashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemAnim} className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+        <motion.div variants={itemAnim} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="lg:col-span-2">
             <StudentSavings />
           </div>

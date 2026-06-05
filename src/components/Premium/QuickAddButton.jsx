@@ -33,7 +33,7 @@ export default function QuickAddButton({ onClick, onVoice, onScan, onAssistant }
   };
 
   return (
-    <div ref={menuRef} className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+    <div ref={menuRef} className="fixed bottom-20 md:bottom-6 right-6 z-[9999] flex flex-col items-end">
       <AnimatePresence>
         {open && (
           <motion.div

@@ -49,7 +49,7 @@ export default function BudgetManager() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="glass-card dark:glass-dark rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-800 dark:text-white">{getMonthLabel(currentMonth)} Budget</h3>

@@ -73,7 +73,7 @@ export default function Reports() {
         <Filters filters={filters} setFilters={setFilters} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
           <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Month Income</p>
           <p className="text-2xl font-bold text-emerald-500">{formatCurrency(currency, monthIncome)}</p>
@@ -88,7 +88,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
           <h3 className="font-semibold text-slate-800 dark:text-white mb-4">Category Breakdown</h3>
           {categorySummary.length === 0 ? (

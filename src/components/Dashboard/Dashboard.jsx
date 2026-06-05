@@ -165,8 +165,8 @@ export default function Dashboard() {
           />
         </motion.div>
 
-        <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="lg:col-span-3">
+        <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="md:col-span-3 lg:col-span-3">
             <div className="glass-card dark:glass-dark rounded-2xl p-4 sm:p-5">
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">💡</div>
@@ -205,8 +205,8 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="lg:col-span-2 glass-card dark:glass-dark rounded-2xl p-4 sm:p-5">
+        <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="md:col-span-2 lg:col-span-2 glass-card dark:glass-dark rounded-2xl p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-800 dark:text-white">Spending by Category</h3>
               <span className="text-[10px] text-slate-400">Top categories</span>

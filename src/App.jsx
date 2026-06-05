@@ -4,6 +4,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
+import BottomNav from './components/Layout/BottomNav';
 import Dashboard from './components/Dashboard/Dashboard';
 import TransactionsPage from './components/Transactions/TransactionsPage';
 import BudgetManager from './components/Budget/BudgetManager';
@@ -55,7 +56,7 @@ function AppContent() {
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0">
         <Header onMenuClick={() => setMobileOpen((prev) => !prev)} user={user} onLogout={logout} />
-        <main className="flex-1 px-4 lg:px-6 py-4 lg:py-6">
+        <main className="flex-1 px-4 lg:px-6 py-4 lg:py-6 pb-20 md:pb-4 lg:pb-6">
           <Routes>
             <Route path="/" element={studentMode ? <StudentDashboard /> : <Dashboard />} />
             <Route path="/transactions" element={<TransactionsPage />} />
@@ -77,6 +78,7 @@ function AppContent() {
           </Routes>
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 }

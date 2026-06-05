@@ -100,7 +100,7 @@ export default function Insights() {
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Smart analysis and AI-powered financial guidance</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <AIInsightsWidget />
         </div>
