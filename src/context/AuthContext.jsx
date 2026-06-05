@@ -97,6 +97,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const googleLogin = async (credential) => {
+    setAuthError('');
+    try {
+      const { data } = await API.post('/auth/google', { credential });
+      saveSession(data.token, data.user, true);
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Google Sign-In failed';
+      console.error('[Auth] Google login error:', err.response?.status, msg);
+      setAuthError(msg);
+      return false;
+    }
+  };
+
   const forgotPassword = async (email) => {
     setAuthError('');
     try {
@@ -174,7 +188,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, token, loading, authError, setAuthError,
-      login, register, logout, forgotPassword, updateProfile, changePassword, uploadAvatar,
+      login, register, googleLogin, logout, forgotPassword, updateProfile, changePassword, uploadAvatar,
     }}>
       {children}
     </AuthContext.Provider>

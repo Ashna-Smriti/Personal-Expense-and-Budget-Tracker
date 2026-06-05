@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../Common/ThemeToggle';
 import { Eye, EyeOff, AlertCircle, ArrowRight, WifiOff } from 'lucide-react';
 
+const HAS_GOOGLE_CLIENT = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 export default function Login() {
   const navigate = useNavigate();
-  const { login, authError, setAuthError } = useAuth();
+  const { login, googleLogin, authError, setAuthError } = useAuth();
   const [form, setForm] = useState({ email: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -141,7 +144,37 @@ export default function Login() {
               </motion.button>
             </form>
 
-            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-white/10">
+            {HAS_GOOGLE_CLIENT && (
+              <>
+                <div className="mt-6 relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200 dark:border-white/10" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white dark:bg-slate-900 px-3 text-slate-400 dark:text-slate-500">or continue with</span>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      setAuthError('');
+                      const success = await googleLogin(credentialResponse.credential);
+                      if (success) navigate('/');
+                    }}
+                    onError={() => setAuthError('Google Sign-In failed. Please try again.')}
+                    theme="outline"
+                    size="large"
+                    text="continue_with"
+                    shape="pill"
+                    width="100%"
+                    containerProps={{ className: 'w-full [&>div]:w-full' }}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
               <p className="text-center text-xs text-slate-400 dark:text-slate-500 mb-3">Can't sign in? Use offline mode</p>
               <motion.button
                 type="button"

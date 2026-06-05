@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../Common/ThemeToggle';
 import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+
+const HAS_GOOGLE_CLIENT = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const strengthConfig = [
   { label: 'Weak', color: 'bg-red-500', textColor: 'text-red-500', min: 0 },
@@ -26,7 +29,7 @@ const getStrength = (pw) => {
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register, authError, setAuthError } = useAuth();
+  const { register, googleLogin, authError, setAuthError } = useAuth();
   const [form, setForm] = useState({ fullName: '', email: '', username: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -204,7 +207,37 @@ export default function Register() {
               </motion.button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            {HAS_GOOGLE_CLIENT && (
+              <>
+                <div className="mt-6 relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200 dark:border-white/10" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white dark:bg-slate-900 px-3 text-slate-400 dark:text-slate-500">or continue with</span>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      setAuthError('');
+                      const success = await googleLogin(credentialResponse.credential);
+                      if (success) navigate('/');
+                    }}
+                    onError={() => setAuthError('Google Sign-In failed. Please try again.')}
+                    theme="outline"
+                    size="large"
+                    text="continue_with"
+                    shape="pill"
+                    width="100%"
+                    containerProps={{ className: 'w-full [&>div]:w-full' }}
+                  />
+                </div>
+              </>
+            )}
+
+            <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
               Already have an account?{' '}
               <Link to="/login" className="font-semibold text-primary hover:text-primary-dark transition-colors">Sign in</Link>
             </p>

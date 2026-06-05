@@ -1,6 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 
@@ -77,6 +78,70 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Login failed' });
+  }
+});
+
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential is required' });
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      return res.status(500).json({ message: 'Google Sign-In not configured on server' });
+    }
+
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: clientId,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    let user = await User.findOne({ $or: [{ email }, { googleId }] });
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (!user.avatar && picture) user.avatar = picture;
+        await user.save({ validateBeforeSave: false });
+      }
+    } else {
+      const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+      let username = baseUsername;
+      let suffix = 1;
+      while (await User.findOne({ username })) {
+        username = `${baseUsername}${suffix}`;
+        suffix++;
+      }
+      user = await User.create({
+        fullName: name || 'Google User',
+        email,
+        username,
+        googleId,
+        avatar: picture || '',
+        password: crypto.randomBytes(32).toString('hex'),
+      });
+    }
+
+    const token = generateToken(user._id);
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        username: user.username,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error('[Google Auth]', error.message);
+    res.status(401).json({ message: 'Google authentication failed' });
   }
 });
 
