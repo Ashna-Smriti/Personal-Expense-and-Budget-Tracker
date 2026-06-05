@@ -5,7 +5,7 @@ import Modal from '../Common/Modal';
 import ConfirmDialog from '../Common/ConfirmDialog';
 import EmptyState from '../Common/EmptyState';
 
-function GoalForm({ onSubmit, onCancel, initialData }) {
+function GoalForm({ onSubmit, onCancel, initialData, id }) {
   const [form, setForm] = useState({
     name: initialData?.name || '',
     target: initialData?.target || '',
@@ -23,7 +23,7 @@ function GoalForm({ onSubmit, onCancel, initialData }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={id} onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Goal Name</label>
         <input
@@ -59,10 +59,6 @@ function GoalForm({ onSubmit, onCancel, initialData }) {
           placeholder="0.00"
           className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
         />
-      </div>
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-        <button type="submit" className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors">{initialData ? 'Update' : 'Create'} Goal</button>
       </div>
     </form>
   );
@@ -177,8 +173,30 @@ export default function SavingsGoals() {
         </div>
       )}
 
-      <Modal isOpen={showForm} onClose={() => { setShowForm(false); setEditing(null); }} title={editing ? 'Edit Goal' : 'New Savings Goal'}>
-        <GoalForm onSubmit={handleSubmit} onCancel={() => { setShowForm(false); setEditing(null); }} initialData={editing} />
+      <Modal
+        isOpen={showForm}
+        onClose={() => { setShowForm(false); setEditing(null); }}
+        title={editing ? 'Edit Goal' : 'New Savings Goal'}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => { setShowForm(false); setEditing(null); }}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="goal-form"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
+            >
+              {editing ? 'Update' : 'Create'} Goal
+            </button>
+          </div>
+        }
+      >
+        <GoalForm id="goal-form" onSubmit={handleSubmit} onCancel={() => { setShowForm(false); setEditing(null); }} initialData={editing} />
       </Modal>
 
       <ConfirmDialog

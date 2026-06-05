@@ -145,7 +145,7 @@ export default function ReceiptScanner({ onClose }) {
       )}
 
       {extracted && !scanning && (
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form id="scanner-form" onSubmit={handleSubmit} className="space-y-3">
           <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-800/50 border border-slate-200 dark:border-slate-600">
             <div className="text-center mb-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400">
@@ -186,14 +186,17 @@ export default function ReceiptScanner({ onClose }) {
                 className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
             </div>
           </div>
-
+        </form>
+      )}
+      {extracted && !scanning && (
+        <div className="sticky bottom-0 -mx-4 md:-mx-5 px-4 md:px-5 py-3 bg-white/95 dark:bg-slate-900/95 border-t border-slate-200 dark:border-slate-700 mt-4 -mb-4 md:-mb-5">
           <div className="flex gap-3">
             <button type="button" onClick={onClose}
               className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-            <button type="submit"
+            <button type="submit" form="scanner-form"
               className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors">Add Transaction</button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );

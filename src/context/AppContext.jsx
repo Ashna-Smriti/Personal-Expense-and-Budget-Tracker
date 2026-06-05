@@ -335,7 +335,7 @@ export function AppProvider({ children }) {
       }
       return prev;
     });
-  }, [transactions.length, savingsGoals.map((g) => g.saved).join(','), monthlyExpenses, currentMonth]);
+  }, [transactions.length, savingsGoals, monthlyExpenses, currentMonth]);
 
   useEffect(() => {
     const now = new Date().toISOString();

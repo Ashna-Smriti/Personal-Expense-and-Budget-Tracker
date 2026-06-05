@@ -4,8 +4,6 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../utils/constants';
 import { getCurrencySymbol } from '../../utils/helpers';
 import MoodSelector from '../Common/MoodSelector';
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
 const SPEECH_INCOME_KEYWORDS = ['received', 'got', 'earned', 'salary', 'stipend', 'scholarship', 'income', 'refund', 'bonus', 'freelancing', 'pocket money'];
 const SPEECH_EXPENSE_KEYWORDS = ['spent', 'paid', 'bought', 'purchased', 'ordered', 'invested', 'gave', 'donated'];
 
@@ -34,7 +32,7 @@ function parseVoiceText(text, categories) {
   return result;
 }
 
-export default function TransactionForm({ onSubmit, onCancel, initialData }) {
+export default function TransactionForm({ onSubmit, onCancel, initialData, id }) {
   const { currency } = useApp();
   const [listening, setListening] = useState(false);
   const [form, setForm] = useState({
@@ -76,7 +74,7 @@ export default function TransactionForm({ onSubmit, onCancel, initialData }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={id} onSubmit={handleSubmit} className="space-y-4">
       <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
         {['Expense', 'Income'].map((type) => (
           <button
@@ -143,12 +141,14 @@ export default function TransactionForm({ onSubmit, onCancel, initialData }) {
             placeholder="Enter description or use voice input..."
             className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors pr-12"
           />
-          {SpeechRecognition && (
+          {(() => { const sr = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition); return sr; })() && (
             <button
               type="button"
               onClick={() => {
                 if (listening) return;
-                const recognition = new SpeechRecognition();
+                const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+                if (!SR) return;
+                const recognition = new SR();
                 recognition.lang = 'en-US';
                 recognition.interimResults = false;
                 setListening(true);
@@ -196,22 +196,6 @@ export default function TransactionForm({ onSubmit, onCancel, initialData }) {
       </div>
 
       <MoodSelector selected={form.mood} onSelect={(mood) => setForm((prev) => ({ ...prev, mood }))} />
-
-      <div className="flex gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
-        >
-          {initialData ? 'Update' : 'Add'} Transaction
-        </button>
-      </div>
     </form>
   );
 }

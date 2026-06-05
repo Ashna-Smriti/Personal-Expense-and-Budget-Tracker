@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Palette, LogOut, Menu, ChevronDown, User } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -9,6 +9,8 @@ import ThemeSelector from '../Premium/ThemeSelector';
 
 export default function Header({ onMenuClick, user, onLogout }) {
   const { currency, setCurrency } = useApp();
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   const [showTheme, setShowTheme] = useState(false);
   const [showCurrency, setShowCurrency] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -29,6 +31,14 @@ export default function Header({ onMenuClick, user, onLogout }) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 placeholder="Search transactions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate('/transactions', { state: { search: searchQuery.trim() } });
+                    setSearchQuery('');
+                  }
+                }}
                 className="w-48 lg:w-64 pl-10 pr-4 py-2 text-sm rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               />
             </div>
@@ -91,8 +101,12 @@ export default function Header({ onMenuClick, user, onLogout }) {
                   onClick={() => setShowProfile(!showProfile)}
                   className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                    {user.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white shadow-sm overflow-hidden">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      user.fullName?.charAt(0)?.toUpperCase() || 'U'
+                    )}
                   </div>
                   <span className="text-sm font-medium text-slate-600 dark:text-slate-300 hidden sm:block">{user.fullName?.split(' ')[0]}</span>
                 </button>

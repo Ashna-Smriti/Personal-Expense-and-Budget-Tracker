@@ -1,11 +1,11 @@
 import { useApp } from '../../context/AppContext';
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useApp();
+  const { theme, setTheme } = useApp();
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
       className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >

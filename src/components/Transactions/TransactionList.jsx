@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
 import { filterTransactions, formatCurrency, formatDate } from '../../utils/helpers';
@@ -16,7 +17,9 @@ import { X } from 'lucide-react';
 
 export default function TransactionList() {
   const { transactions, addTransaction, updateTransaction, deleteTransaction, currency } = useApp();
-  const [filters, setFilters] = useState({ month: '', category: '', startDate: '', endDate: '', search: '' });
+  const location = useLocation();
+  const initialSearch = location.state?.search || '';
+  const [filters, setFilters] = useState({ month: '', category: '', startDate: '', endDate: '', search: initialSearch });
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
   const [sortBy, setSortBy] = useState('date-desc');
@@ -229,8 +232,31 @@ export default function TransactionList() {
         onAssistant={() => setShowAssistant(true)}
       />
 
-      <Modal isOpen={showForm} onClose={() => { setShowForm(false); setEditing(null); }} title={editing ? 'Edit Transaction' : 'Add Transaction'}>
+      <Modal
+        isOpen={showForm}
+        onClose={() => { setShowForm(false); setEditing(null); }}
+        title={editing ? 'Edit Transaction' : 'Add Transaction'}
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => { setShowForm(false); setEditing(null); }}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="transaction-form"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
+            >
+              {editing ? 'Update' : 'Add'} Transaction
+            </button>
+          </div>
+        }
+      >
         <TransactionForm
+          id="transaction-form"
           onSubmit={handleSubmit}
           onCancel={() => { setShowForm(false); setEditing(null); }}
           initialData={editing}

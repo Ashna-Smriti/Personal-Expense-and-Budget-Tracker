@@ -144,7 +144,7 @@ export default function Login() {
               </motion.button>
             </form>
 
-            {HAS_GOOGLE_CLIENT && (
+            {HAS_GOOGLE_CLIENT ? (
               <>
                 <div className="mt-6 relative">
                   <div className="absolute inset-0 flex items-center">
@@ -172,6 +172,10 @@ export default function Login() {
                   />
                 </div>
               </>
+            ) : (
+              <div className="mt-4 p-3 bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl text-center">
+                <p className="text-xs text-slate-400 dark:text-slate-500">Google Sign-In not configured</p>
+              </div>
             )}
 
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/10">

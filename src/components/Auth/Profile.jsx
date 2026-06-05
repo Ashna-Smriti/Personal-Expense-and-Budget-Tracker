@@ -81,7 +81,7 @@ export default function Profile() {
                 className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl cursor-pointer hover:opacity-80 transition-opacity overflow-hidden mx-auto border-4 border-white dark:border-slate-700 shadow-lg"
               >
                 {user?.avatar ? (
-                  <img src={`http://localhost:5001${user.avatar}`} alt="avatar" className="w-full h-full object-cover" />
+                  <img src={user.avatar.startsWith('/') ? `${import.meta.env.VITE_API_URL || ''}${user.avatar}` : user.avatar} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <span className="text-white font-bold text-3xl">
                     {user?.fullName?.charAt(0)?.toUpperCase() || '?'}

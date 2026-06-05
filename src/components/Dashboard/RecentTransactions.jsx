@@ -76,8 +76,35 @@ export default function RecentTransactions() {
           ))
         )}
       </div>
-      <Modal isOpen={!!editing} onClose={() => setEditing(null)} title="Edit Transaction">
-        <TransactionForm onSubmit={(data) => { updateTransaction(editing.id, data); setEditing(null); }} onCancel={() => setEditing(null)} initialData={editing} />
+      <Modal
+        isOpen={!!editing}
+        onClose={() => setEditing(null)}
+        title="Edit Transaction"
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setEditing(null)}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="edit-transaction-form"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
+            >
+              Update
+            </button>
+          </div>
+        }
+      >
+        <TransactionForm
+          id="edit-transaction-form"
+          onSubmit={(data) => { updateTransaction(editing.id, data); setEditing(null); }}
+          onCancel={() => setEditing(null)}
+          initialData={editing}
+        />
       </Modal>
       <ConfirmDialog
         isOpen={!!deleteId}

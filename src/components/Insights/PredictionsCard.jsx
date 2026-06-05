@@ -3,6 +3,9 @@ import { formatCurrency } from '../../utils/helpers';
 
 export default function PredictionsCard() {
   const { predictions, currency } = useApp();
+
+  if (!predictions) return null;
+
   const { predictedEndOfMonth, dailyAverage, daysLeft, trend, budgetRisk, riskLevel, riskColor, predictedSavings } = predictions;
 
   return (

@@ -6,6 +6,16 @@ const API = axios.create({ baseURL: API_BASE });
 
 console.log('[Auth] API base URL:', API_BASE);
 
+const friendlyError = (err) => {
+  if (!err.response) return 'Server unavailable — check your connection';
+  const status = err.response.status;
+  if (status === 400) return err.response.data?.message || 'Invalid request';
+  if (status === 401) return err.response.data?.message || 'Invalid credentials';
+  if (status === 404) return 'Service not found';
+  if (status >= 500) return err.response.data?.message || 'Server error — please try again later';
+  return err.response.data?.message || err.message || 'Something went wrong';
+};
+
 export const setAuthToken = (token) => {
   if (token) {
     API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -33,7 +43,7 @@ export function AuthProvider({ children }) {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchUser = async () => {
     try {
@@ -76,7 +86,7 @@ export function AuthProvider({ children }) {
       saveSession(data.token, data.user, rememberMe);
       return true;
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Login failed';
+      const msg = friendlyError(err);
       console.error('[Auth] Login error:', err.response?.status, msg, err.config?.url);
       setAuthError(msg);
       return false;
@@ -90,7 +100,7 @@ export function AuthProvider({ children }) {
       saveSession(data.token, data.user, true);
       return true;
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Registration failed';
+      const msg = friendlyError(err);
       console.error('[Auth] Register error:', err.response?.status, msg, err.config?.url);
       setAuthError(msg);
       return false;
@@ -104,7 +114,7 @@ export function AuthProvider({ children }) {
       saveSession(data.token, data.user, true);
       return true;
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Google Sign-In failed';
+      const msg = friendlyError(err);
       console.error('[Auth] Google login error:', err.response?.status, msg);
       setAuthError(msg);
       return false;
@@ -117,7 +127,7 @@ export function AuthProvider({ children }) {
       const { data } = await API.post('/auth/forgot-password', { email });
       return data;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Failed to process request');
+      setAuthError(friendlyError(err));
       return null;
     }
   };
@@ -131,7 +141,7 @@ export function AuthProvider({ children }) {
       sessionStorage.setItem('user', userStr);
       return true;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Update failed');
+      setAuthError(friendlyError(err));
       return false;
     }
   };
@@ -141,7 +151,7 @@ export function AuthProvider({ children }) {
       await API.put('/user/password', { currentPassword, newPassword });
       return true;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Password change failed');
+      setAuthError(friendlyError(err));
       return false;
     }
   };
@@ -156,7 +166,7 @@ export function AuthProvider({ children }) {
       setUser((prev) => ({ ...prev, avatar: data.avatar }));
       return true;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Upload failed');
+      setAuthError(friendlyError(err));
       return false;
     }
   };

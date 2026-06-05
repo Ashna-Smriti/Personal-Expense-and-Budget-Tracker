@@ -14,6 +14,9 @@ export default function VoiceEntry({ onClose }) {
   const [error, setError] = useState('');
   const recognitionRef = useRef(null);
 
+  const studentModeRef = useRef(studentMode);
+  studentModeRef.current = studentMode;
+
   const incomeCats = INCOME_CATEGORIES;
   const expenseCats = EXPENSE_CATEGORIES;
 
@@ -75,7 +78,7 @@ export default function VoiceEntry({ onClose }) {
       else if (/freelanc/i.test(lower)) category = 'Freelancing';
       else if (/busines/i.test(lower)) category = 'Business';
       else if (/scholarship/i.test(lower)) category = 'Scholarship';
-      else if (/internship|stipend/i.test(lower)) category = studentMode ? 'Internship' : 'Freelancing';
+      else if (/internship|stipend/i.test(lower)) category = studentModeRef.current ? 'Internship' : 'Freelancing';
       else if (/gift|pocket money/i.test(lower)) category = 'Gift';
       else if (/refund/i.test(lower)) category = 'Other';
       else if (/bonus/i.test(lower)) category = 'Salary';

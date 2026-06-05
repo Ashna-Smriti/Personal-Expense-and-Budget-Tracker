@@ -112,6 +112,9 @@ export default function Analytics() {
 
   const trendIcon = predictions?.trend === 'increasing' ? '📈' : predictions?.trend === 'decreasing' ? '📉' : '📊';
   const riskColor = predictions?.riskColor || '#10b981';
+  const trend = predictions?.trend || 'stable';
+  const riskLevel = predictions?.riskLevel || 'low';
+  const budgetRisk = predictions?.budgetRisk || 0;
 
   return (
     <div className="space-y-6">
@@ -159,7 +162,7 @@ export default function Analytics() {
             </div>
             <div>
               <p className="text-xs text-slate-400 dark:text-slate-500">Trend</p>
-              <p className="text-lg font-bold text-slate-800 dark:text-white">{trendIcon} {predictions.trend.charAt(0).toUpperCase() + predictions.trend.slice(1)}</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-white">{trendIcon} {trend.charAt(0).toUpperCase() + trend.slice(1)}</p>
             </div>
             <div>
               <p className="text-xs text-slate-400 dark:text-slate-500">Budget Risk</p>

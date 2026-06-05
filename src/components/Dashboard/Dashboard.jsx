@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
-import { formatCurrency, calculateFinancialHealth } from '../../utils/helpers';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency, calculateFinancialHealth, getCurrencySymbol } from '../../utils/helpers';
 import { EXPENSE_CATEGORIES } from '../../utils/constants';
 import StatsCard from './StatsCard';
 import RecentTransactions from './RecentTransactions';
@@ -38,8 +39,10 @@ export default function Dashboard() {
     addTransaction,
   } = useApp();
 
+  const { user } = useAuth();
   const { score, label, color } = calculateFinancialHealth(monthlyIncome, monthlyExpenses, currentBudget);
-  const userName = 'Ashna';
+  const symbol = getCurrencySymbol(currency);
+  const userName = user?.fullName?.split(' ')[0] || 'there';
 
   const [showScanner, setShowScanner] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
@@ -269,7 +272,7 @@ export default function Dashboard() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-emerald-500">₹</span>
+                    <span className="text-lg font-bold text-emerald-500">{symbol}</span>
                     <span className="text-[10px] text-slate-400">Income</span>
                   </div>
                 </div>
@@ -311,8 +314,31 @@ export default function Dashboard() {
       />
       <AIAssistant open={showAssistant} onClose={() => setShowAssistant(false)} />
 
-      <Modal isOpen={showQuickAdd} onClose={() => setShowQuickAdd(false)} title="Add Transaction">
+      <Modal
+        isOpen={showQuickAdd}
+        onClose={() => setShowQuickAdd(false)}
+        title="Add Transaction"
+        footer={
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowQuickAdd(false)}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="quick-add-form"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors"
+            >
+              Add Transaction
+            </button>
+          </div>
+        }
+      >
         <TransactionForm
+          id="quick-add-form"
           onSubmit={(data) => {
             addTransaction(data);
             setShowQuickAdd(false);

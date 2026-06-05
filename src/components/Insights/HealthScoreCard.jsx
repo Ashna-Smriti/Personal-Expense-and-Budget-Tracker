@@ -4,6 +4,9 @@ import ProgressRing from '../Common/ProgressRing';
 
 export default function HealthScoreCard() {
   const { healthScore, currency } = useApp();
+
+  if (!healthScore) return null;
+
   const { score, label, color, breakdown, suggestions } = healthScore;
 
   return (
