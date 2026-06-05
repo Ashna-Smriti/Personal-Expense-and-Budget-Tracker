@@ -4,9 +4,11 @@ import { motion } from 'framer-motion';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../Common/ThemeToggle';
-import { Eye, EyeOff, AlertCircle, ArrowRight, WifiOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, Settings, WifiOff } from 'lucide-react';
 
 const HAS_GOOGLE_CLIENT = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const API_URL = import.meta.env.VITE_API_URL;
+const IS_LOCALHOST_FALLBACK = !API_URL || API_URL.includes('localhost');
 
 export default function Login() {
   const navigate = useNavigate();
@@ -54,6 +56,16 @@ export default function Login() {
           </div>
 
           <div className="glass-card dark:glass-dark rounded-3xl shadow-2xl p-8 sm:p-10">
+            {import.meta.env.PROD && IS_LOCALHOST_FALLBACK && (
+              <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-xs text-amber-600 dark:text-amber-400 flex items-start gap-2">
+                <Settings className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>Backend not configured.</strong> Set{' '}
+                  <code className="text-[10px] bg-amber-100 dark:bg-amber-900/30 px-1 rounded">VITE_API_URL</code>
+                  {' '}in Vercel dashboard → Environment Variables to your deployed backend URL.
+                </div>
+              </div>
+            )}
             <div className="text-center mb-8">
               <motion.div
                 initial={{ scale: 0 }}

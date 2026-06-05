@@ -14,7 +14,22 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors({ origin: true, credentials: true }));
+const corsOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',').map(s => s.trim()).filter(Boolean)
+  .map(o => o.startsWith('/') && o.endsWith('/') ? new RegExp(o.slice(1, -1)) : o);
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:4173',
+    /\.vercel\.app$/,
+    /\.railway\.app$/,
+    /\.onrender\.com$/,
+    /\.netlify\.app$/,
+    ...corsOrigins,
+  ].filter(Boolean),
+  credentials: true,
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

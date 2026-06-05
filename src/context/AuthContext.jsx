@@ -1,10 +1,17 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
-const API = axios.create({ baseURL: API_BASE });
+const API_BASE = import.meta.env.VITE_API_URL;
+if (!API_BASE) {
+  if (import.meta.env.PROD) {
+    console.error('[Auth] CRITICAL: VITE_API_URL not set. Set it in Vercel dashboard → Environment Variables → VITE_API_URL');
+  }
+  console.warn('[Auth] No VITE_API_URL — falling back to localhost:5001');
+}
+const FALLBACK = 'http://localhost:5001/api';
+const API = axios.create({ baseURL: API_BASE || FALLBACK });
 
-console.log('[Auth] API base URL:', API_BASE);
+console.log('[Auth] API base URL:', API_BASE || FALLBACK, API_BASE ? '(from env)' : '(fallback)');
 
 const friendlyError = (err) => {
   if (!err.response) return 'Server unavailable — check your connection';
