@@ -12,8 +12,24 @@ const quickActions = [
   { icon: '🎯', label: 'Goal progress' },
 ];
 
-export default function AIAssistant() {
-  const [open, setOpen] = useState(false);
+export default function AIAssistant({ open: controlledOpen, onClose: controlledOnClose }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnClose ? () => {} : setInternalOpen;
+
+  const handleClose = () => {
+    if (controlledOnClose) {
+      controlledOnClose();
+    } else {
+      setInternalOpen(false);
+    }
+  };
+
+  const handleOpen = () => {
+    if (!controlledOnClose) {
+      setInternalOpen(true);
+    }
+  };
   const [chat, setChat] = useState([]);
   const [input, setInput] = useState('');
   const {
@@ -189,19 +205,21 @@ export default function AIAssistant() {
 
   return (
     <>
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-xl flex items-center justify-center cursor-pointer"
-        style={{ boxShadow: '0 4px 20px var(--theme-glow)' }}
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-      </motion.button>
+      {controlledOpen === undefined && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleOpen}
+          className="fixed bottom-20 right-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-xl flex items-center justify-center cursor-pointer"
+          style={{ boxShadow: '0 4px 20px var(--theme-glow)' }}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </motion.button>
+      )}
 
       <AnimatePresence>
         {open && (
@@ -211,7 +229,7 @@ export default function AIAssistant() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/30 z-50"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
             />
             <motion.div
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
@@ -229,7 +247,7 @@ export default function AIAssistant() {
                     <p className="text-xs text-emerald-500">Analyzing your data...</p>
                   </div>
                 </div>
-                <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>

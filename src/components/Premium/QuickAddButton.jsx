@@ -1,40 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Mic, Camera } from 'lucide-react';
+import { Plus, Mic, Camera, Bot } from 'lucide-react';
 
 const actions = [
-  { icon: Plus, label: 'Transaction', color: 'from-primary to-accent' },
-  { icon: Mic, label: 'Voice', color: 'from-indigo-500 to-purple-500' },
-  { icon: Camera, label: 'Scan', color: 'from-emerald-500 to-teal-500' },
+  { icon: Bot, label: 'AI Assistant', action: 'assistant', color: 'from-amber-500 to-orange-500' },
+  { icon: Camera, label: 'Scan Receipt', action: 'scan', color: 'from-emerald-500 to-teal-500' },
+  { icon: Mic, label: 'Voice Entry', action: 'voice', color: 'from-indigo-500 to-purple-500' },
+  { icon: Plus, label: 'Add Transaction', action: 'transaction', color: 'from-primary to-accent' },
 ];
 
-export default function QuickAddButton({ onClick, onVoice, onScan }) {
+export default function QuickAddButton({ onClick, onVoice, onScan, onAssistant }) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  const handleAction = (index) => {
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  const handleAction = (action) => {
     setOpen(false);
-    if (index === 0) onClick?.();
-    else if (index === 1) onVoice?.();
-    else if (index === 2) onScan?.();
+    if (action === 'transaction') onClick?.();
+    else if (action === 'voice') onVoice?.();
+    else if (action === 'scan') onScan?.();
+    else if (action === 'assistant') onAssistant?.();
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div ref={menuRef} className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
       <AnimatePresence>
-        {open && actions.slice(1).map((action, i) => (
-          <motion.button
-            key={action.label}
-            initial={{ opacity: 0, scale: 0, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0, y: 20 }}
-            transition={{ delay: i * 0.05 }}
-            onClick={() => handleAction(i + 1)}
-            className={`w-12 h-12 rounded-full bg-gradient-to-br ${action.color} text-white shadow-lg flex items-center justify-center cursor-pointer`}
-            title={action.label}
-          >
-            <action.icon className="w-5 h-5" />
-          </motion.button>
-        ))}
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+            onClick={() => setOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {open && (
+          <div className="flex flex-col items-end gap-3 mb-4 relative z-[9999]">
+            {actions.map((action, i) => (
+              <motion.button
+                key={action.action}
+                initial={{ opacity: 0, scale: 0.5, x: 20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.5, x: 20 }}
+                transition={{ delay: i * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
+                onClick={() => handleAction(action.action)}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <span className="px-3 py-1.5 text-xs font-medium text-white bg-slate-800/90 dark:bg-white/90 dark:text-slate-800 rounded-lg shadow-lg backdrop-blur-sm whitespace-nowrap">
+                  {action.label}
+                </span>
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${action.color} text-white shadow-xl flex items-center justify-center flex-shrink-0 hover:scale-110 active:scale-95 transition-transform`}>
+                  <action.icon className="w-5 h-5" />
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        )}
       </AnimatePresence>
 
       <motion.button
@@ -42,14 +76,8 @@ export default function QuickAddButton({ onClick, onVoice, onScan }) {
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => {
-          if (open) {
-            setOpen(false);
-          } else {
-            setOpen(true);
-          }
-        }}
-        className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-xl flex items-center justify-center cursor-pointer"
+        onClick={() => setOpen(!open)}
+        className="relative z-[9999] w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-xl flex items-center justify-center cursor-pointer"
         style={{ boxShadow: '0 8px 32px var(--theme-glow)' }}
       >
         <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.2 }}>

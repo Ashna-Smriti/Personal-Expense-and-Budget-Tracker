@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [showVoice, setShowVoice] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showAssistant, setShowAssistant] = useState(false);
 
   const spendingByCategory = useMemo(() => {
     const map = {};
@@ -306,8 +307,9 @@ export default function Dashboard() {
         onClick={() => setShowQuickAdd(true)}
         onVoice={() => setShowVoice(true)}
         onScan={() => setShowScanner(true)}
+        onAssistant={() => setShowAssistant(true)}
       />
-      <AIAssistant />
+      <AIAssistant open={showAssistant} onClose={() => setShowAssistant(false)} />
 
       <Modal isOpen={showQuickAdd} onClose={() => setShowQuickAdd(false)} title="Add Transaction">
         <TransactionForm

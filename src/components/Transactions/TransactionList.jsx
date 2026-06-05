@@ -11,6 +11,7 @@ import EmptyState from '../Common/EmptyState';
 import FloatingButton from '../Common/FloatingButton';
 import VoiceEntry from '../Voice/VoiceEntry';
 import ReceiptScanner from '../Scanner/ReceiptScanner';
+import AIAssistant from '../Premium/AIAssistant';
 import { X } from 'lucide-react';
 
 export default function TransactionList() {
@@ -22,6 +23,7 @@ export default function TransactionList() {
   const [showForm, setShowForm] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showAssistant, setShowAssistant] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -224,6 +226,7 @@ export default function TransactionList() {
         onClick={() => { setEditing(null); setShowForm(true); }}
         onVoice={() => setShowVoice(true)}
         onScan={() => setShowScanner(true)}
+        onAssistant={() => setShowAssistant(true)}
       />
 
       <Modal isOpen={showForm} onClose={() => { setShowForm(false); setEditing(null); }} title={editing ? 'Edit Transaction' : 'Add Transaction'}>
@@ -248,6 +251,7 @@ export default function TransactionList() {
       <Modal isOpen={showScanner} onClose={() => setShowScanner(false)} title="Scan Receipt">
         <ReceiptScanner onClose={() => setShowScanner(false)} />
       </Modal>
+      <AIAssistant open={showAssistant} onClose={() => setShowAssistant(false)} />
     </div>
   );
 }
