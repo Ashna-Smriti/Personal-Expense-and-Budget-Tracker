@@ -9,6 +9,8 @@ import Modal from '../Common/Modal';
 import ConfirmDialog from '../Common/ConfirmDialog';
 import EmptyState from '../Common/EmptyState';
 import FloatingButton from '../Common/FloatingButton';
+import VoiceEntry from '../Voice/VoiceEntry';
+import ReceiptScanner from '../Scanner/ReceiptScanner';
 import { X } from 'lucide-react';
 
 export default function TransactionList() {
@@ -18,6 +20,8 @@ export default function TransactionList() {
   const [amountMax, setAmountMax] = useState('');
   const [sortBy, setSortBy] = useState('date-desc');
   const [showForm, setShowForm] = useState(false);
+  const [showVoice, setShowVoice] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -216,7 +220,11 @@ export default function TransactionList() {
         </div>
       )}
 
-      <FloatingButton onClick={() => { setEditing(null); setShowForm(true); }} />
+      <FloatingButton
+        onClick={() => { setEditing(null); setShowForm(true); }}
+        onVoice={() => setShowVoice(true)}
+        onScan={() => setShowScanner(true)}
+      />
 
       <Modal isOpen={showForm} onClose={() => { setShowForm(false); setEditing(null); }} title={editing ? 'Edit Transaction' : 'Add Transaction'}>
         <TransactionForm
@@ -233,6 +241,13 @@ export default function TransactionList() {
         title="Delete Transaction"
         message="Are you sure you want to delete this transaction? This action cannot be undone."
       />
+
+      <Modal isOpen={showVoice} onClose={() => setShowVoice(false)} title="Voice Entry">
+        <VoiceEntry onClose={() => setShowVoice(false)} />
+      </Modal>
+      <Modal isOpen={showScanner} onClose={() => setShowScanner(false)} title="Scan Receipt">
+        <ReceiptScanner onClose={() => setShowScanner(false)} />
+      </Modal>
     </div>
   );
 }

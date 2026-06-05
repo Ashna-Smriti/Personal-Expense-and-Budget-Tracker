@@ -51,6 +51,28 @@ export function checkUnusualSpendingAlert(transactions, currentMonth) {
   return null;
 }
 
+export function checkBillReminders(bills, setNotifications) {
+  const today = new Date().getDate();
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  for (const bill of bills) {
+    if (bill.paid) continue;
+    let dueDay = bill.dueDay;
+    if (dueDay < today) dueDay += daysInMonth;
+    const daysUntil = dueDay - today;
+    if (daysUntil === 0) {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.message?.includes(bill.name) && n.title === 'Bill Due Today')) return prev;
+        return [createNotification('Bill Due Today', `${bill.name} of ${bill.amount} is due today!`, 'danger', '🔔'), ...prev].slice(0, 50);
+      });
+    } else if (daysUntil <= 3 && daysUntil > 0) {
+      setNotifications((prev) => {
+        if (prev.some((n) => n.message?.includes(bill.name) && n.title === 'Upcoming Bill')) return prev;
+        return [createNotification('Upcoming Bill', `${bill.name} of ${bill.amount} is due in ${daysUntil} days.`, 'warning', '⏰'), ...prev].slice(0, 50);
+      });
+    }
+  }
+}
+
 function getMonthLabel(monthStr) {
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const [, m] = monthStr.split('-');

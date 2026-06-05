@@ -6,13 +6,25 @@ import MoodSelector from '../Common/MoodSelector';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+const SPEECH_INCOME_KEYWORDS = ['received', 'got', 'earned', 'salary', 'stipend', 'scholarship', 'income', 'refund', 'bonus', 'freelancing', 'pocket money'];
+const SPEECH_EXPENSE_KEYWORDS = ['spent', 'paid', 'bought', 'purchased', 'ordered', 'invested', 'gave', 'donated'];
+
 function parseVoiceText(text, categories) {
-  const result = { description: text, amount: '', category: '' };
+  const result = { description: text, amount: '', category: '', type: null };
   const amountMatch = text.match(/[\d,.]+/);
   if (amountMatch) result.amount = amountMatch[0].replace(/,/g, '');
 
+  const lower = text.toLowerCase();
+  const hasIncome = SPEECH_INCOME_KEYWORDS.some(kw => lower.includes(kw));
+  const hasExpense = SPEECH_EXPENSE_KEYWORDS.some(kw => lower.includes(kw));
+  if (hasIncome && !hasExpense) {
+    result.type = 'Income';
+  } else if (hasExpense && !hasIncome) {
+    result.type = 'Expense';
+  }
+
   for (const cat of categories) {
-    if (text.toLowerCase().includes(cat.name.toLowerCase())) {
+    if (lower.includes(cat.name.toLowerCase())) {
       result.category = cat.name;
       break;
     }
@@ -149,6 +161,7 @@ export default function TransactionForm({ onSubmit, onCancel, initialData }) {
                     description: parsed.description || prev.description,
                     amount: parsed.amount || prev.amount,
                     category: parsed.category || prev.category,
+                    type: parsed.type || prev.type,
                   }));
                   setListening(false);
                 };

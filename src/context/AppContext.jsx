@@ -7,7 +7,9 @@ import { predictExpenses } from '../utils/predictions';
 
 import { getUpcomingRenewals } from '../utils/subscriptions';
 import { analyzeMoodSpending } from '../utils/moodTracker';
-import { createNotification, checkBudgetAlert, checkSavingsGoalAlert, checkUnusualSpendingAlert } from '../utils/notifications';
+import { createNotification, checkBudgetAlert, checkSavingsGoalAlert, checkUnusualSpendingAlert, checkBillReminders } from '../utils/notifications';
+import { ACHIEVEMENTS, checkAchievements } from '../utils/achievements';
+const achievements = ACHIEVEMENTS;
 
 const THEMES = ['dark', 'light', 'purple', 'emerald', 'blue'];
 
@@ -46,12 +48,11 @@ function calculateStreak(transactions) {
   return streak;
 }
 
-function calculateLevel(transactions, earnedAchievements) {
-  const xp = transactions.length * 10 + earnedAchievements.length * 100;
-  if (xp >= 5000) return { level: 'Platinum', icon: '💎', min: 5000, color: '#6366f1' };
-  if (xp >= 2000) return { level: 'Gold', icon: '🥇', min: 2000, color: '#f59e0b' };
-  if (xp >= 500) return { level: 'Silver', icon: '🥈', min: 500, color: '#94a3b8' };
-  return { level: 'Bronze', icon: '🥉', min: 0, color: '#cd7f32' };
+function calculateLevel(xp) {
+  if (xp >= 5000) return { level: 'Finance Pro', icon: '💎', min: 5000, nextMin: null, xp, color: '#6366f1' };
+  if (xp >= 2000) return { level: 'Budget Master', icon: '🥇', min: 2000, nextMin: 5000, xp, color: '#f59e0b' };
+  if (xp >= 500) return { level: 'Smart Spender', icon: '🥈', min: 500, nextMin: 2000, xp, color: '#94a3b8' };
+  return { level: 'Beginner Saver', icon: '🥉', min: 0, nextMin: 500, xp, color: '#cd7f32' };
 }
 
 function getDailyQuote() {
@@ -79,6 +80,8 @@ export function AppProvider({ children }) {
   const [earnedAchievements, setEarnedAchievements] = useLocalStorage('bt_achievements', []);
   const [notifications, setNotifications] = useLocalStorage('bt_notifications', []);
   const [studentMode, setStudentMode] = useLocalStorage('bt_student_mode', false);
+  const [bills, setBills] = useLocalStorage('bt_bills', []);
+  const [xp, setXpRaw] = useLocalStorage('bt_xp', 0);
 
   const currentMonth = getMonthYear(new Date().toISOString());
   const currentBudget = budget[currentMonth] || 0;
@@ -139,10 +142,28 @@ export function AppProvider({ children }) {
 
   const upcomingRenewals = useMemo(() => getUpcomingRenewals(subscriptions), [subscriptions]);
 
+  const upcomingBills = useMemo(() => {
+    const today = new Date().getDate();
+    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    return bills
+      .filter((b) => !b.paid)
+      .map((b) => {
+        let dueDay = b.dueDay;
+        if (dueDay < today) dueDay += daysInMonth;
+        return { ...b, daysUntil: dueDay - today };
+      })
+      .sort((a, b) => a.daysUntil - b.daysUntil);
+  }, [bills]);
+
   const moodAnalysis = useMemo(() => analyzeMoodSpending(transactions), [transactions]);
 
+  const effectiveXp = useMemo(() => Math.max(xp, transactions.length * 10 + earnedAchievements.length * 100), [xp, transactions.length, earnedAchievements.length]);
+  const addXp = useCallback((amount) => {
+    setXpRaw((prev) => prev + amount);
+  }, [setXpRaw]);
+
   const streak = useMemo(() => calculateStreak(transactions), [transactions]);
-  const userLevel = useMemo(() => calculateLevel(transactions, earnedAchievements), [transactions, earnedAchievements]);
+  const userLevel = useMemo(() => calculateLevel(effectiveXp), [effectiveXp]);
   const dailyQuote = useMemo(() => getDailyQuote(), []);
   const greeting = useMemo(() => getGreeting(), []);
 
@@ -171,7 +192,8 @@ export function AppProvider({ children }) {
 
   const addTransaction = useCallback((transaction) => {
     setTransactions((prev) => [...prev, { ...transaction, id: Date.now().toString() }]);
-  }, [setTransactions]);
+    addXp(10);
+  }, [setTransactions, addXp]);
 
   const updateTransaction = useCallback((id, updated) => {
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
@@ -187,7 +209,8 @@ export function AppProvider({ children }) {
 
   const addSavingsGoal = useCallback((goal) => {
     setSavingsGoals((prev) => [...prev, { ...goal, id: Date.now().toString(), saved: 0, createdAt: new Date().toISOString() }]);
-  }, [setSavingsGoals]);
+    addXp(50);
+  }, [setSavingsGoals, addXp]);
 
   const updateSavingsGoal = useCallback((id, data) => {
     setSavingsGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...data } : g)));
@@ -203,7 +226,8 @@ export function AppProvider({ children }) {
 
   const addSubscription = useCallback((sub) => {
     setSubscriptions((prev) => [...prev, { ...sub, id: Date.now().toString(), createdAt: new Date().toISOString() }]);
-  }, [setSubscriptions]);
+    addXp(15);
+  }, [setSubscriptions, addXp]);
 
   const updateSubscription = useCallback((id, data) => {
     setSubscriptions((prev) => prev.map((s) => (s.id === id ? { ...s, ...data } : s)));
@@ -212,6 +236,19 @@ export function AppProvider({ children }) {
   const deleteSubscription = useCallback((id) => {
     setSubscriptions((prev) => prev.filter((s) => s.id !== id));
   }, [setSubscriptions]);
+
+  const addBill = useCallback((bill) => {
+    setBills((prev) => [...prev, { ...bill, id: Date.now().toString(), paid: false, createdAt: new Date().toISOString() }]);
+    addXp(20);
+  }, [setBills, addXp]);
+
+  const updateBill = useCallback((id, data) => {
+    setBills((prev) => prev.map((b) => (b.id === id ? { ...b, ...data } : b)));
+  }, [setBills]);
+
+  const deleteBill = useCallback((id) => {
+    setBills((prev) => prev.filter((b) => b.id !== id));
+  }, [setBills]);
 
   const addChallenge = useCallback((challenge) => {
     setChallenges((prev) => [...prev, {
@@ -275,6 +312,32 @@ export function AppProvider({ children }) {
   }, [transactions, currentMonth, setNotifications]);
 
   useEffect(() => {
+    checkBillReminders(bills, setNotifications);
+  }, [bills, setNotifications]);
+
+  useEffect(() => {
+    const current = checkAchievements(transactions, savingsGoals, budget, monthlyExpenses, currentMonth, bills);
+    setEarnedAchievements((prev) => {
+      const merged = new Set([...prev, ...current]);
+      if (merged.size !== prev.length) {
+        const newOnes = current.filter((id) => !prev.includes(id));
+        for (const id of newOnes) {
+          addXp(100);
+          const a = achievements.find((x) => x.id === id);
+          if (a) {
+            setNotifications((n) => {
+              if (n.some((x) => x.title === 'Achievement Unlocked!')) return n;
+              return [createNotification('Achievement Unlocked!', `🏅 ${a.title} — ${a.desc}`, 'success', '🏅'), ...n].slice(0, 50);
+            });
+          }
+        }
+        return [...merged];
+      }
+      return prev;
+    });
+  }, [transactions.length, savingsGoals.map((g) => g.saved).join(','), monthlyExpenses, currentMonth]);
+
+  useEffect(() => {
     const now = new Date().toISOString();
     for (const sub of subscriptions) {
       if (sub.nextRenewal && sub.nextRenewal <= now) {
@@ -302,10 +365,12 @@ export function AppProvider({ children }) {
     theme, currency, subscriptions, challenges, earnedAchievements, notifications,
     studentMode, aiInsights, healthScore, predictions, upcomingRenewals, moodAnalysis,
     streak, userLevel, dailyQuote, greeting, todaySpending, weekSpending, topCategory,
+    bills, upcomingBills, effectiveXp, addXp,
     setCurrency, addTransaction, updateTransaction, deleteTransaction,
     setMonthlyBudget, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal,
     setTheme: setThemeValue, addSubscription, updateSubscription, deleteSubscription,
     addChallenge, updateChallenge, deleteChallenge,
+    addBill, updateBill, deleteBill,
     setEarnedAchievements, addNotification, markNotificationRead, clearNotifications,
     setStudentMode, setSubscriptions, setChallenges, setNotifications,
   }), [
@@ -314,10 +379,12 @@ export function AppProvider({ children }) {
     theme, currency, subscriptions, challenges, earnedAchievements, notifications,
     studentMode, aiInsights, healthScore, predictions, upcomingRenewals, moodAnalysis,
     streak, userLevel, dailyQuote, greeting, todaySpending, weekSpending, topCategory,
+    bills, upcomingBills, effectiveXp, addXp,
     setCurrency, addTransaction, updateTransaction, deleteTransaction,
     setMonthlyBudget, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal,
     setThemeValue, addSubscription, updateSubscription, deleteSubscription,
     addChallenge, updateChallenge, deleteChallenge,
+    addBill, updateBill, deleteBill,
     setEarnedAchievements, addNotification, markNotificationRead, clearNotifications,
     setStudentMode, setSubscriptions, setChallenges, setNotifications,
   ]);

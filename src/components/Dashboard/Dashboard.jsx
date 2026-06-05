@@ -7,6 +7,7 @@ import StatsCard from './StatsCard';
 import RecentTransactions from './RecentTransactions';
 import BudgetProgress from './BudgetProgress';
 import AIInsightsWidget from './AIInsightsWidget';
+import UpcomingBills from './UpcomingBills';
 import Modal from '../Common/Modal';
 import TransactionForm from '../Transactions/TransactionForm';
 import ReceiptScanner from '../Scanner/ReceiptScanner';
@@ -14,6 +15,7 @@ import VoiceEntry from '../Voice/VoiceEntry';
 import QuickAddButton from '../Premium/QuickAddButton';
 import AIAssistant from '../Premium/AIAssistant';
 import ConfettiEffect from '../Premium/ConfettiEffect';
+import QuickActions from '../Common/QuickActions';
 
 const container = {
   hidden: { opacity: 0 },
@@ -30,9 +32,9 @@ const item = {
 
 export default function Dashboard() {
   const {
-    totalExpenses, monthlyExpenses, monthlyIncome, monthlySavings,
+    monthlyExpenses, monthlyIncome, monthlySavings,
     currentBudget, currency, transactions, streak, userLevel,
-    dailyQuote, greeting, todaySpending, weekSpending,
+    dailyQuote, greeting, todaySpending, weekSpending, effectiveXp,
     addTransaction,
   } = useApp();
 
@@ -43,11 +45,6 @@ export default function Dashboard() {
   const [showVoice, setShowVoice] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-
-  const triggerConfetti = () => {
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 3000);
-  };
 
   const spendingByCategory = useMemo(() => {
     const map = {};
@@ -64,6 +61,10 @@ export default function Dashboard() {
       }))
       .sort((a, b) => b.value - a.value);
   }, [transactions]);
+
+  const xpProgress = userLevel.nextMin
+    ? ((effectiveXp - userLevel.min) / (userLevel.nextMin - userLevel.min)) * 100
+    : 100;
 
   return (
     <div className="w-full">
@@ -104,6 +105,34 @@ export default function Dashboard() {
                 <span className="text-xs font-bold text-orange-600 dark:text-orange-400">{streak} day streak</span>
               </div>
             )}
+          </div>
+        </motion.div>
+
+        <motion.div variants={item} className="flex justify-start">
+          <QuickActions
+            onVoice={() => setShowVoice(true)}
+            onScan={() => setShowScanner(true)}
+          />
+        </motion.div>
+
+        <motion.div variants={item} className="glass-card dark:glass-dark rounded-2xl p-3 px-4 border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">{userLevel.icon}</span>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{userLevel.level}</span>
+            </div>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+              {effectiveXp} XP {userLevel.nextMin ? `/ ${userLevel.nextMin} XP` : '— MAX LEVEL'}
+            </span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ backgroundColor: userLevel.color }}
+              initial={{ width: 0 }}
+              animate={{ width: `${xpProgress}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            />
           </div>
         </motion.div>
 
@@ -266,13 +295,18 @@ export default function Dashboard() {
           <div className="lg:col-span-2">
             <RecentTransactions />
           </div>
-          <div>
+          <div className="space-y-3">
+            <UpcomingBills />
             <AIInsightsWidget compact />
           </div>
         </motion.div>
       </motion.div>
 
-      <QuickAddButton onClick={() => setShowQuickAdd(true)} />
+      <QuickAddButton
+        onClick={() => setShowQuickAdd(true)}
+        onVoice={() => setShowVoice(true)}
+        onScan={() => setShowScanner(true)}
+      />
       <AIAssistant />
 
       <Modal isOpen={showQuickAdd} onClose={() => setShowQuickAdd(false)} title="Add Transaction">

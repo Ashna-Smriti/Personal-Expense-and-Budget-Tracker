@@ -2,7 +2,8 @@ import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ArrowRightLeft, PiggyBank, BarChart3, Target, FileText,
-  Lightbulb, Repeat, Trophy, Medal, GraduationCap, User, X,
+  Lightbulb, Repeat, Trophy, Medal, GraduationCap, User, X, Wrench, FlaskConical,
+  Bell, CalendarRange,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -11,12 +12,16 @@ const navItems = [
   { path: '/transactions', icon: ArrowRightLeft, label: 'Transactions' },
   { path: '/budget', icon: PiggyBank, label: 'Budget' },
   { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { path: '/heatmap', icon: CalendarRange, label: 'Heatmap' },
   { path: '/savings', icon: Target, label: 'Savings' },
   { path: '/reports', icon: FileText, label: 'Reports' },
   { path: '/insights', icon: Lightbulb, label: 'Insights' },
   { path: '/subscriptions', icon: Repeat, label: 'Subscriptions' },
+  { path: '/bills', icon: Bell, label: 'Bills' },
   { path: '/achievements', icon: Trophy, label: 'Achievements' },
   { path: '/challenges', icon: Medal, label: 'Challenges' },
+  { path: '/goal-simulator', icon: Wrench, label: 'Goal Sim' },
+  { path: '/what-if', icon: FlaskConical, label: 'What-If' },
   { path: '/student', icon: GraduationCap, label: 'Student' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];

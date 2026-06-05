@@ -6,12 +6,12 @@ import ConfettiEffect from '../Premium/ConfettiEffect';
 import { Lock, Unlock, Sparkles } from 'lucide-react';
 
 export default function Achievements() {
-  const { transactions, savingsGoals, budget, monthlyExpenses, currentMonth, earnedAchievements, setEarnedAchievements } = useApp();
+  const { transactions, savingsGoals, budget, monthlyExpenses, currentMonth, earnedAchievements, setEarnedAchievements, bills } = useApp();
   const [showConfetti, setShowConfetti] = useState(false);
   const prevCountRef = useRef(earnedAchievements.length);
 
   const allEarned = useMemo(() => {
-    const current = checkAchievements(transactions, savingsGoals, budget, monthlyExpenses, currentMonth);
+    const current = checkAchievements(transactions, savingsGoals, budget, monthlyExpenses, currentMonth, bills);
     const merged = new Set([...earnedAchievements, ...current]);
     if (merged.size !== earnedAchievements.length) {
       setEarnedAchievements([...merged]);

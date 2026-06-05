@@ -19,6 +19,10 @@ import SubscriptionTracker from './components/Subscriptions/SubscriptionTracker'
 import SavingsChallenges from './components/Savings/SavingsChallenges';
 import Achievements from './components/Achievements/Achievements';
 import StudentDashboard from './components/Student/StudentDashboard';
+import GoalSimulator from './components/Tools/GoalSimulator';
+import WhatIfSimulator from './components/Tools/WhatIfSimulator';
+import BillReminder from './components/Bills/BillReminder';
+import ExpenseHeatmap from './components/Analytics/ExpenseHeatmap';
 
 function AppContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -64,6 +68,10 @@ function AppContent() {
             <Route path="/challenges" element={<SavingsChallenges />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/heatmap" element={<ExpenseHeatmap />} />
+            <Route path="/goal-simulator" element={<GoalSimulator />} />
+            <Route path="/what-if" element={<WhatIfSimulator />} />
+            <Route path="/bills" element={<BillReminder />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
