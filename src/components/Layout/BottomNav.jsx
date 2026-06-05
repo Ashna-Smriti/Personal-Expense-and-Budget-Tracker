@@ -11,7 +11,7 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-card dark:glass-dark border-t border-slate-200/30 dark:border-white/5 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-card dark:glass-dark border-t border-slate-200/30 dark:border-white/5" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => (
           <NavLink

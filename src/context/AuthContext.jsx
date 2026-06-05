@@ -1,7 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:5001/api' });
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API = axios.create({ baseURL: API_BASE });
+
+console.log('[Auth] API base URL:', API_BASE);
 
 export const setAuthToken = (token) => {
   if (token) {
@@ -40,7 +43,13 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', userStr);
       sessionStorage.setItem('user', userStr);
     } catch {
-      logout();
+      // Backend unreachable — keep localStorage data and proceed offline
+      const stored = localStorage.getItem('user') || sessionStorage.getItem('user');
+      if (stored) {
+        try { setUser(JSON.parse(stored)); } catch { logout(); }
+      } else {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +76,9 @@ export function AuthProvider({ children }) {
       saveSession(data.token, data.user, rememberMe);
       return true;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Login failed');
+      const msg = err.response?.data?.message || err.message || 'Login failed';
+      console.error('[Auth] Login error:', err.response?.status, msg, err.config?.url);
+      setAuthError(msg);
       return false;
     }
   };
@@ -79,7 +90,9 @@ export function AuthProvider({ children }) {
       saveSession(data.token, data.user, true);
       return true;
     } catch (err) {
-      setAuthError(err.response?.data?.message || 'Registration failed');
+      const msg = err.response?.data?.message || err.message || 'Registration failed';
+      console.error('[Auth] Register error:', err.response?.status, msg, err.config?.url);
+      setAuthError(msg);
       return false;
     }
   };

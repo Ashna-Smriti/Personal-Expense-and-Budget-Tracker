@@ -28,7 +28,7 @@ import ExpenseHeatmap from './components/Analytics/ExpenseHeatmap';
 function AppContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, studentMode } = useApp();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -39,6 +39,14 @@ function AppContent() {
       root.classList.add('dark');
     }
   }, [theme]);
+
+  if (loading) {
+    return (
+      <div className="min-h-dvh min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -52,7 +60,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    <div className="min-h-dvh min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0">
         <Header onMenuClick={() => setMobileOpen((prev) => !prev)} user={user} onLogout={logout} />

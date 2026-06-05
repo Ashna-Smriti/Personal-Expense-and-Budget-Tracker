@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../Common/ThemeToggle';
-import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, WifiOff } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -141,7 +141,26 @@ export default function Login() {
               </motion.button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-white/10">
+              <p className="text-center text-xs text-slate-400 dark:text-slate-500 mb-3">Can't sign in? Use offline mode</p>
+              <motion.button
+                type="button"
+                onClick={() => {
+                  const guest = { id: 'guest', fullName: 'Guest User', email: 'guest@local', username: 'guest' };
+                  localStorage.setItem('token', 'offline-token');
+                  localStorage.setItem('user', JSON.stringify(guest));
+                  window.location.href = '/';
+                }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full py-2.5 px-4 text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.08] rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-200 dark:border-white/10"
+              >
+                <WifiOff className="w-4 h-4" />
+                Continue Offline (Demo)
+              </motion.button>
+            </div>
+
+            <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
               Don't have an account?{' '}
               <Link to="/register" className="font-semibold text-primary hover:text-primary-dark transition-colors">Create one</Link>
             </p>
